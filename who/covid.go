@@ -10,16 +10,16 @@ import (
 	"time"
 )
 
-const sourceURL = "https://covid.ourworldindata.org/data/full_data.csv"
+const WhoSourceURL = "https://covid.ourworldindata.org/data/full_data.csv"
 const nCols = 6
 
-type rawData struct {
-	date        time.Time
-	location    string
-	newCases    int
-	newDeaths   int
-	totalCases  int
-	totalDeaths int
+type RawData struct {
+	Date        time.Time
+	Location    string
+	NewCases    int
+	NewDeaths   int
+	TotalCases  int
+	TotalDeaths int
 }
 
 func getField(rec []string, headers []string, item string) (string, error) {
@@ -54,8 +54,8 @@ func getIntField(rec []string, headers []string, item string) (int, error) {
 	return i, nil
 }
 
-func ReadFullData(in io.Reader) ([]rawData, error) {
-	var out []rawData
+func ReadFullData(in io.Reader) ([]RawData, error) {
+	var out []RawData
 	r := csv.NewReader(in)
 	headers, err := r.Read()
 	if err != nil {
@@ -76,15 +76,15 @@ func ReadFullData(in io.Reader) ([]rawData, error) {
 		if err != nil {
 			return out, err
 		}
-		tf, err := getField(rec, headers, "date")
+		tf, err := getField(rec, headers, "Date")
 		if err != nil {
 			return out, err
 		}
 		date, err := time.Parse("2006-01-02", tf)
 		if err != nil {
-			return out, fmt.Errorf("Could not parse date in CSV stream, %w", err)
+			return out, fmt.Errorf("Could not parse Date in CSV stream, %w", err)
 		}
-		location, err := getField(rec, headers, "location")
+		location, err := getField(rec, headers, "Location")
 		if err != nil {
 			return out, err
 		}
@@ -106,7 +106,7 @@ func ReadFullData(in io.Reader) ([]rawData, error) {
 			return out, err
 		}
 
-		out = append(out, rawData{
+		out = append(out, RawData{
 			date,
 			location,
 			newCases,
@@ -118,7 +118,7 @@ func ReadFullData(in io.Reader) ([]rawData, error) {
 	return out, err
 }
 
-func DownloadCSV(url string) (o []rawData, err error) {
+func DownloadCSV(url string) (o []RawData, err error) {
 	r, err := http.Get(url)
 	if err != nil {
 		return o, err
@@ -128,4 +128,27 @@ func DownloadCSV(url string) (o []rawData, err error) {
 	}
 	defer r.Body.Close()
 	return ReadFullData(r.Body)
+}
+
+func LastDate(r []RawData) time.Time {
+	var last time.Time
+	for _, x := range r {
+		if x.Date.After(last) {
+			last = x.Date
+		}
+	}
+	return last
+}
+
+func Latest(r []RawData) []RawData {
+	seen := make(map[string]bool, len(r))
+	o := make([]RawData, 0, len(r))
+	for i := len(r) - 1; i >= 0; i-- {
+		if seen[r[i].Location] {
+			continue
+		}
+		seen[r[i].Location] = true
+		o = append(o, r[i])
+	}
+	return o
 }
