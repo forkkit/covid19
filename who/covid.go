@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -36,7 +35,7 @@ func getField(rec []string, headers []string, item string) (string, error) {
 	if len(rec) <= i {
 		return "", fmt.Errorf("Too few fields in record")
 	}
-	return strings.TrimSpace(rec[i]), nil
+	return rec[i], nil
 }
 
 func getIntField(rec []string, headers []string, item string) (int, error) {
@@ -57,21 +56,16 @@ func getIntField(rec []string, headers []string, item string) (int, error) {
 func ReadFullData(in io.Reader) ([]RawData, error) {
 	var out []RawData
 	r := csv.NewReader(in)
+	r.FieldsPerRecord = nCols
+	r.TrimLeadingSpace = true
 	headers, err := r.Read()
 	if err != nil {
 		return out, err
 	}
-	if len(headers) != nCols {
-		return out, fmt.Errorf("Want %d fields in csv stream, got %d", nCols, len(headers))
-	}
-
 	for {
 		rec, err := r.Read()
 		if len(rec) == 0 {
 			break
-		}
-		if len(rec) != nCols {
-			return out, fmt.Errorf("Want %d fields in csv stream, got %d", nCols, len(rec))
 		}
 		if err != nil {
 			return out, err
