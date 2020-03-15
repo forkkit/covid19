@@ -146,3 +146,13 @@ func Latest(r []RawData) []RawData {
 	}
 	return o
 }
+
+func Country(r []RawData, country string) []RawData {
+	o := make([]RawData, 0, len(r))
+	for _, p := range r {
+		if p.Location == country {
+			o = append(o, p)
+		}
+	}
+	return o
+}

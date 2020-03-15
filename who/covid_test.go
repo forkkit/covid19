@@ -131,5 +131,21 @@ func TestLatest(t *testing.T) {
 	assert.Equal(t, "United Kingdom", ol[0].Location)
 	assert.Equal(t, dt(2020, 3, 14), ol[1].Date)
 	assert.Equal(t, "United States", ol[1].Location)
+}
 
+func TestCountry(t *testing.T) {
+	testData := `Date,Location,new_cases,new_deaths,total_cases,total_deaths
+		2020-03-09,United Kingdom,67,0,277,2
+		2020-03-10,United Kingdom,46,1,323,3
+		2020-03-11,United Kingdom,50,3,373,6
+		2020-03-12,United Kingdom,87,0,460,6
+		2020-03-13,United Kingdom,134,2,594,8
+		2020-03-11,United States,224,6,696,25
+		2020-03-12,United States,291,4,987,29
+		2020-03-13,United States,277,7,1264,36
+		2020-03-14,United States,414,5,1678,41`
+	o, err := ReadFullData(strings.NewReader(testData))
+	assert.NoError(t, err)
+	us := Country(o, "United States")
+	require.Equal(t, 4, len(us))
 }
