@@ -70,7 +70,7 @@ func ReadFullData(in io.Reader) ([]RawData, error) {
 		if err != nil {
 			return out, err
 		}
-		tf, err := getField(rec, headers, "Date")
+		tf, err := getField(rec, headers, "date")
 		if err != nil {
 			return out, err
 		}
@@ -78,7 +78,7 @@ func ReadFullData(in io.Reader) ([]RawData, error) {
 		if err != nil {
 			return out, fmt.Errorf("Could not parse Date in CSV stream, %w", err)
 		}
-		location, err := getField(rec, headers, "Location")
+		location, err := getField(rec, headers, "location")
 		if err != nil {
 			return out, err
 		}
