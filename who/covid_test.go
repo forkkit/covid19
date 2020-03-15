@@ -1,8 +1,11 @@
 package who
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -20,13 +23,11 @@ func dt(y, m, d int) time.Time {
 
 func Test_readFullDataOne(t *testing.T) {
 	testData := `date,location,new_cases,new_deaths,total_cases,total_deaths
-2020-02-25,Afghanistan,1,2,3,4
-`
+		2020-02-25,Afghanistan,1,2,3,4`
 	o, err := ReadFullData(strings.NewReader(testData))
 	require.NoError(t, err)
 	require.Equal(t, 1, len(o))
 	assert.Equal(t, dt(2020, 2, 25), o[0].date)
-
 	assert.Equal(t, 1, o[0].newCases)
 	assert.Equal(t, 2, o[0].newDeaths)
 	assert.Equal(t, 3, o[0].totalCases)
@@ -76,4 +77,21 @@ func Test_readFullNotCSV(t *testing.T) {
 	testData := `"`
 	_, err := ReadFullData(strings.NewReader(testData))
 	assert.Error(t, err)
+}
+
+func TestDownloadCSV(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, `date,location,new_cases,new_deaths,total_cases,total_deaths
+			2020-02-25,Afghanistan,1,2,3,4`)
+	}))
+	defer ts.Close()
+
+	o, err := DownloadCSV(ts.URL)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(o))
+	assert.Equal(t, dt(2020, 2, 25), o[0].date)
+	assert.Equal(t, 1, o[0].newCases)
+	assert.Equal(t, 2, o[0].newDeaths)
+	assert.Equal(t, 3, o[0].totalCases)
+	assert.Equal(t, 4, o[0].totalDeaths)
 }
