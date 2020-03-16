@@ -1,0 +1,64 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <title>COVID-19 cases</title>
+
+</head>
+<body>
+<link rel="stylesheet" type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.6.1/css/buttons.bootstrap.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.1/css/scroller.bootstrap.css"/>
+<link rel="stylesheet" type="text/css"
+      href="https://cdn.datatables.net/searchpanes/1.0.1/css/searchPanes.bootstrap.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css"/>
+
+<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script type="text/javascript" language="javascript"
+        src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+
+<div class="container">
+
+    <h1>COVID-19 counts</h1>
+    <!-- Content here -->
+    <table id="example" class="display" style="width:100%">
+        <thead>
+        <tr>
+            <th>Country</th>
+            <th>Cases</th>
+            <th>New Cases.</th>
+            <th>Deaths</th>
+            <th>New Deaths</th>
+        </tr>
+        </thead>
+        <tfoot>
+        </tfoot>
+    </table>
+</div>
+
+
+</body>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#example').DataTable({
+            "ajax": 'stats.json',
+            "dataSrc": "",
+            "paging": false,
+            "order": [[1, 'desc']],
+            "columns": [
+                {"data": "Location"},
+                {"data": "TotalCases"},
+                {"data": "NewCases"},
+                {"data": "TotalDeaths"},
+                {"data": "NewDeaths"}
+            ]
+
+        })
+    });
+</script>
+</html>
