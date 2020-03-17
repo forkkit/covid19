@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -121,6 +122,7 @@ func DownloadCSV(url string) (o []RawData, err error) {
 		return o, fmt.Errorf("Status %q when downloading CSV file from %q", r.Status, url)
 	}
 	defer r.Body.Close()
+	log.Println("GET", url, r.Status)
 	return ReadFullData(r.Body)
 }
 

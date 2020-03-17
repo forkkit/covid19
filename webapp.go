@@ -6,11 +6,14 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
 var tmpl = template.Must(template.ParseFiles("templates/top.html"))
 var countryTemplate = template.Must(template.ParseFiles("templates/country.html"))
+
+var lock sync.RWMutex
 var whoStats []who.RawData
 
 func homepage(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +37,10 @@ func country(w http.ResponseWriter, r *http.Request) {
 	}
 	loc, ok := r.URL.Query()["loc"]
 	if ok {
-		payload.Data = who.Country(whoStats, loc[0])
+		lock.RLock()
+		ws := whoStats
+		lock.RUnlock()
+		payload.Data = who.Country(ws, loc[0])
 	}
 	json.NewEncoder(w).Encode(payload)
 }
@@ -43,8 +49,10 @@ func stats(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		Data []who.RawData `json:"data"`
 	}
-
-	payload.Data = who.Latest(whoStats)
+	lock.RLock()
+	ws := whoStats
+	lock.RUnlock()
+	payload.Data = who.Latest(ws)
 	json.NewEncoder(w).Encode(payload)
 }
 
@@ -58,9 +66,11 @@ func updater() {
 		if err != nil {
 			log.Println(err)
 		} else {
+			lock.Lock()
 			whoStats = ws
+			lock.Unlock()
 		}
-		time.Sleep(6 * time.Hour)
+		time.Sleep(time.Hour)
 	}
 }
 
