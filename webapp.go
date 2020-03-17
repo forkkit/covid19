@@ -19,6 +19,10 @@ var lock sync.RWMutex
 var whoStats []who.RawData
 
 func homepage(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
 	tmpl.Execute(w, nil)
 }
 
