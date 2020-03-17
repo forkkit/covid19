@@ -10,11 +10,33 @@ import (
 )
 
 var tmpl = template.Must(template.ParseFiles("templates/top.html"))
+var countryTemplate = template.Must(template.ParseFiles("templates/country.html"))
 var whoStats []who.RawData
 
 func homepage(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.RemoteAddr, r.Method, r.URL)
 	tmpl.Execute(w, nil)
+}
+
+func countryPage(w http.ResponseWriter, r *http.Request) {
+	loc, ok := r.URL.Query()["loc"]
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+
+	countryTemplate.Execute(w, loc[0])
+}
+
+func country(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		Data []who.RawData `json:"data"`
+	}
+	loc, ok := r.URL.Query()["loc"]
+	if ok {
+		payload.Data = who.Country(whoStats, loc[0])
+	}
+	json.NewEncoder(w).Encode(payload)
 }
 
 func stats(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +68,8 @@ func main() {
 	go updater()
 	http.HandleFunc("/", homepage)
 	http.HandleFunc("/stats.json", stats)
+	http.HandleFunc("/country.json", country)
+	http.HandleFunc("/country.html", countryPage)
 	http.HandleFunc("/favicon.ico", favicon)
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))

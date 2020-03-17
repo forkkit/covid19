@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
 
-    <title>COVID-19 cases</title>
+    <title>COVID-19 cases for {{ . }}</title>
 
 </head>
 <body>
@@ -23,12 +23,12 @@
 
 <div class="container">
 
-    <h1>COVID-19 counts</h1>
+    <h1>{{ . }}</h1>
     <!-- Content here -->
     <table id="example" class="display" style="width:100%">
         <thead>
         <tr>
-            <th>Country</th>
+            <th>Date</th>
             <th>Cases</th>
             <th>New Cases.</th>
             <th>Deaths</th>
@@ -46,15 +46,15 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $('#example').DataTable({
-            "ajax": 'stats.json',
+            "ajax": 'country.json?loc={{ . }}',
             "dataSrc": "",
             "paging": false,
             "order": [[1, 'desc']],
             "columns": [
                 {
-                    "data": "Location",
+                    "data": "Date",
                     "render": function (data, type, row, meta) {
-                        return `<a href="country.html?loc=${data}">${data}</a>`
+                        return data.slice(0, 10)
                     }
                 },
                 {"data": "TotalCases"},
