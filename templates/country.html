@@ -22,6 +22,11 @@
         src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
 
 <div class="container">
+    <nav class="navbar navbar-light bg-light">
+        <a class="navbar-brand" href="/">
+            <img src="/static/iconfinder_ic_virus_5803961.png" width="36" height="36" class="d-inline-block align-top"
+                 alt=""></a>
+    </nav>
 
     <h1>{{ . }}</h1>
     <!-- Content here -->
@@ -30,9 +35,9 @@
         <tr>
             <th>Date</th>
             <th>Cases</th>
-            <th>New Cases.</th>
-            <th>Deaths</th>
-            <th>New Deaths</th>
+            <th>&Delta;.</th>
+            <th>Fatalities</th>
+            <th>&Delta;</th>
         </tr>
         </thead>
         <tfoot>
@@ -58,9 +63,28 @@
                     }
                 },
                 {"data": "TotalCases"},
-                {"data": "NewCases"},
+                {
+                    "data": "NewCases",
+                    "render": function (data, type, row, meta) {
+                        var last = row.TotalCases - data;
+                        if (last > 0) {
+                            return "+" + (100 * data / last).toFixed(0) + "%";
+                        }
+                        return "";
+                    }
+
+                },
                 {"data": "TotalDeaths"},
-                {"data": "NewDeaths"}
+                {
+                    "data": "NewDeaths",
+                    "render": function (data, type, row, meta) {
+                        var last = row.TotalDeaths - data;
+                        if (last > 0) {
+                            return "+" + (100 * data / last).toFixed(0) + "%";
+                        }
+                        return "";
+                    }
+                }
             ]
 
         })
