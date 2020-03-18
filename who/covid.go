@@ -22,36 +22,47 @@ type RawData struct {
 	TotalDeaths int
 }
 
-func getField(rec []string, headers []string, item string) (string, error) {
+type fieldReader struct {
+	headers []string
+	rec     []string
+	err     error
+}
+
+func (f *fieldReader) getField(item string) string {
+	if f.err != nil {
+		return ""
+	}
 	i := 0
 	h := ""
-	for i, h = range headers {
+	for i, h = range f.headers {
 		if h == item {
 			break
 		}
 	}
 	if h != item {
-		return "", fmt.Errorf("No such column %q in CSV steam", item)
+		f.err = fmt.Errorf("No such column %q in CSV steam", item)
+		return ""
 	}
-	if len(rec) <= i {
-		return "", fmt.Errorf("Too few fields in record")
+	if len(f.rec) <= i {
+		f.err = fmt.Errorf("Too few fields in record")
 	}
-	return rec[i], nil
+	return f.rec[i]
 }
 
-func getIntField(rec []string, headers []string, item string) (int, error) {
-	s, err := getField(rec, headers, item)
-	if err != nil {
-		return 0, err
+func (f *fieldReader) getIntField(item string) int {
+	s := f.getField(item)
+	if f.err != nil {
+		return 0
 	}
 	if s == "" {
-		return 0, nil
+		return 0
 	}
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		return 0, fmt.Errorf("Error parsing CSV stream: bad format for %s, could not parse %q as an integer", item, s)
+		f.err = fmt.Errorf("Error parsing CSV stream: bad format for %s, could not parse %q as an integer", item, s)
+		return 0
 	}
-	return i, nil
+	return i
 }
 
 func ReadFullData(in io.Reader) ([]RawData, error) {
@@ -71,34 +82,20 @@ func ReadFullData(in io.Reader) ([]RawData, error) {
 		if err != nil {
 			return out, err
 		}
-		tf, err := getField(rec, headers, "date")
-		if err != nil {
-			return out, err
-		}
+
+		f := fieldReader{headers: headers, rec: rec}
+		tf := f.getField("date")
 		date, err := time.Parse("2006-01-02", tf)
 		if err != nil {
 			return out, fmt.Errorf("Could not parse Date in CSV stream, %w", err)
 		}
-		location, err := getField(rec, headers, "location")
-		if err != nil {
-			return out, err
-		}
-
-		newCases, err := getIntField(rec, headers, "new_cases")
-		if err != nil {
-			return out, err
-		}
-		newDeaths, err := getIntField(rec, headers, "new_deaths")
-		if err != nil {
-			return out, err
-		}
-		totalCases, err := getIntField(rec, headers, "total_cases")
-		if err != nil {
-			return out, err
-		}
-		totalDeaths, err := getIntField(rec, headers, "total_deaths")
-		if err != nil {
-			return out, err
+		location := f.getField("location")
+		newCases := f.getIntField("new_cases")
+		newDeaths := f.getIntField("new_deaths")
+		totalCases := f.getIntField("total_cases")
+		totalDeaths := f.getIntField("total_deaths")
+		if f.err != nil {
+			return out, f.err
 		}
 
 		out = append(out, RawData{
