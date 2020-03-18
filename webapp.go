@@ -17,13 +17,21 @@ var countryTemplate = template.Must(template.ParseFiles("templates/country.html"
 
 var lock sync.RWMutex
 var whoStats []who.RawData
+var statsUpdated string
 
 func homepage(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		Url        string
+		UpdateTime string
+	}{
+		who.WhoSourceURL,
+		statsUpdated,
+	}
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
 	}
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, data)
 }
 
 func countryPage(w http.ResponseWriter, r *http.Request) {
@@ -67,12 +75,13 @@ func favicon(w http.ResponseWriter, r *http.Request) {
 
 func updater() {
 	for {
-		ws, err := who.DownloadCSV(who.WhoSourceURL)
+		ws, updated, err := who.DownloadCSV(who.WhoSourceURL)
 		if err != nil {
 			log.Println(err)
 		} else {
 			lock.Lock()
 			whoStats = ws
+			statsUpdated = updated
 			lock.Unlock()
 		}
 		time.Sleep(time.Hour)

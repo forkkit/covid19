@@ -113,17 +113,19 @@ func ReadFullData(in io.Reader) ([]RawData, error) {
 	return out, err
 }
 
-func DownloadCSV(url string) (o []RawData, err error) {
+func DownloadCSV(url string) (o []RawData, updated string, err error) {
 	r, err := http.Get(url)
 	if err != nil {
-		return o, err
+		return o, "", err
 	}
 	if r.StatusCode != http.StatusOK {
-		return o, fmt.Errorf("Status %q when downloading CSV file from %q", r.Status, url)
+		return o, "", fmt.Errorf("Status %q when downloading CSV file from %q", r.Status, url)
 	}
 	defer r.Body.Close()
 	log.Println("GET", url, r.Status)
-	return ReadFullData(r.Body)
+	updated = r.Header.Get("date")
+	o, err = ReadFullData(r.Body)
+	return o, updated, err
 }
 
 func LastDate(r []RawData) time.Time {
