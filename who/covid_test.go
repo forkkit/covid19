@@ -88,7 +88,7 @@ func TestDownloadCSV(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	o, err := DownloadCSV(ts.URL)
+	o, _, err := DownloadCSV(ts.URL)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(o))
 	assert.Equal(t, dt(2020, 2, 25), o[0].Date)
