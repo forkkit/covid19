@@ -88,9 +88,9 @@ func updater() {
 	}
 }
 
-func allowOnlyGet(next http.Handler) http.Handler {
+func checkHTTPMethod(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
@@ -119,5 +119,5 @@ func setupHanders() http.Handler {
 	r.HandleFunc("/country.html", countryPage)
 	r.HandleFunc("/favicon.ico", favicon)
 	r.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	return allowOnlyGet(r)
+	return checkHTTPMethod(r)
 }
