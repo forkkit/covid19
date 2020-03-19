@@ -88,8 +88,30 @@ func updater() {
 	}
 }
 
+func allowOnlyGet(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	go updater()
+	h := setupHanders()
+	log.Println("listening on http://localhost:8080/")
+	s := &http.Server{
+		Handler:      handlers.LoggingHandler(os.Stdout, h),
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		Addr:         ":8080",
+	}
+	log.Fatalln(s.ListenAndServe())
+}
+
+func setupHanders() http.Handler {
 	r := http.NewServeMux()
 	r.HandleFunc("/", homepage)
 	r.HandleFunc("/stats.json", stats)
@@ -97,7 +119,5 @@ func main() {
 	r.HandleFunc("/country.html", countryPage)
 	r.HandleFunc("/favicon.ico", favicon)
 	r.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	log.Println("listening on http://localhost:8080/")
-	log.Fatal(http.ListenAndServe(":8080", handlers.LoggingHandler(os.Stdout, r)))
-
+	return allowOnlyGet(r)
 }

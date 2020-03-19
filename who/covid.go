@@ -122,6 +122,7 @@ func DownloadCSV(url string) (o []RawData, updated string, err error) {
 	log.Println("GET", url, r.Status)
 	updated = r.Header.Get("date")
 	o, err = ReadFullData(r.Body)
+	log.Println(len(o), "lines of data read for", len(Latest(o)), "countries.")
 	return o, updated, err
 }
 
